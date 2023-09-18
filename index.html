@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <base href="http://localhost:3000" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://raw.githubusercontent.com/hernanmmg/aes/main/favicon.ico" type="image/x-icon"> 
+    <title>AES Encrypt-Decrypt</title>
+    <style>
+        html,body {
+            width: 100%;
+            min-height: 100vh;
+            display: block;
+            position: relative;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f2f2f2;
+        }
+        .linea-roja {
+            background-color: #da291c;
+            height: 12px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            font-family: 'system-ui', monospace;
+        }
+        .divisor {
+            display: flex;
+            position: relative;
+            width: 100%;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+        form {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 16px;
+        }
+        form div {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            text-align: left;
+            margin-bottom: 5px;
+        }
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            max-width: 100%;
+            display: block;
+            position: relative;
+            box-sizing: border-box;
+        }
+        textarea {
+            max-width: fit-content;
+            min-width: fit-content;
+            min-height: 160px; 
+            max-height: 180px;
+        }
+        button#des,
+        button#enc {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 16px;
+            font-size: 16px;
+            width: 132px;
+        }
+        button#des {
+            background-color: #ff4800;
+        }
+        button#enc[type="button"]:hover {
+            background-color: #0056b3;
+        }
+        button#des[type="button"]:hover {
+            background-color: #b30000;
+        }
+        button#clear {
+            background-color: transparent;
+            background-image: url("https://raw.githubusercontent.com/hernanmmg/aes/main/broom.png");
+            background-size: 100% 100%;
+            margin-top: 16px;
+            width: 32px;
+            justify-content: flex-end;
+            display: flex;
+            height: 32px;
+            background-origin: border-box;
+            cursor: not-allowed;
+        }
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none !important;
+            border:1px solid red;
+            box-shadow: 0 0 10px #719ECE;
+        }
+        #resultados{
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+        }
+        #respuesta {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+            background-color: #d7d7d7;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            min-height: 170px;
+            overflow-wrap: anywhere;
+            overflow-x: scroll;
+            display: block;
+            position: relative;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .error {
+            border: 1px solid red;
+        }
+        .text-red {
+            color: red;
+        }
+        .flex {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="linea-roja"></div>
+    <h1>AES Encrypt-Decrypt</h1>
+    <div class="divisor">
+        <form>
+            <div>
+                <label for="encrypter">Escriba el texto a cifrar:</label>
+                <textarea id="encrypter" name="encrypter" rows="4" cols="50"></textarea>
+            </div>
+            <div>
+                <label for="type-encrypter">Seleccionar modo de crifrado:</label>
+                <select id="type-encrypter" name="type-encrypter">
+                    <option value="ecb" selected>ECB</option>
+                    <option value="cbc">CBC</option>
+                </select>
+            </div>
+            <div>
+                <label for="secret-key">Ingrese la clave secreta:</label>
+                <input type="text" id="secret-key" name="secret-key">
+            </div>
+            <div>
+                <label for="iv">Ingrese IV (opcional):</label>
+                <input type="text" id="iv" name="iv">
+            </div>
+            <div class="flex">
+                <button id="enc" type="button" name="enc">Encriptar</button>
+                <button id="des" type="button" name="des">Desencriptar</button>
+                <button id="clear" type="button" name="clear"></button>
+            </div>
+        </form>
+        <div id="resultados">
+            <h4 class="text-red">Token resultante</h4>
+            <div id="respuesta"></div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script>
+        var botonEncriptar = document.getElementById("enc");
+        var botonDesencriptar = document.getElementById("des");
+        var botonLimpiar = document.getElementById("clear");
+        var selector =  document.getElementById("type-encrypter");
+        var inputIV = document.getElementById("iv");
+        var resultados = document.getElementById("resultados");
+        resultados.style.display = "none";
+        inputIV.disabled = true;
+        var typeCipher = {
+            ecb: "ecb",
+            cbc: "cbc"
+        }
+        botonEncriptar.addEventListener("click", function(e) {
+            const encrypter = document.getElementById("encrypter").value;
+            const iv = inputIV.value;
+            const typeEncrypter = selector.value;
+            const secretKey = document.getElementById("secret-key").value;
+            //
+            const response = validarNullOrEmpty(encrypter, iv, typeEncrypter, secretKey);
+            
+            if (response.status) {
+                encrypterAES(encrypter, iv, typeEncrypter, secretKey);
+            } else {
+                alert(response.mensaje);
+            }
+        });
+        botonDesencriptar.addEventListener("click", function(e) {
+            const encrypter = document.getElementById("encrypter").value;
+            const iv = inputIV.value;
+            const typeEncrypter = selector.value;
+            const secretKey = document.getElementById("secret-key").value;
+            //
+            const response = validarNullOrEmpty(encrypter, iv, typeEncrypter, secretKey);
+            
+            if (response.status) {
+                desencrypterAES(encrypter, iv, typeEncrypter, secretKey);
+            } else {
+                alert(response.mensaje);
+            }
+        });
+        botonLimpiar.addEventListener("click", function(e) {
+            const encrypter = document.getElementById("encrypter").value = "";
+            const iv = inputIV.value = "";
+            const secretKey = document.getElementById("secret-key").value = "";
+            resultados.style.display = "none";
+        });
+        
+        selector.addEventListener('change', function () {
+            if (selector.value === typeCipher.cbc) {
+                inputIV.disabled = false;
+            } else {
+                inputIV.disabled = true;
+            }
+        });
+        
+        function validarNullOrEmpty(encrypter, iv, typeEncrypter, secretKey) {
+            response = { status: true, mensaje: null };
+            if (encrypter.trim() === "") {
+                response.mensaje = "No se encuentró información en el texto a cifrar."
+            } else if (iv.trim() === "" && typeEncrypter.trim() === "cbc") {
+                response.mensaje = "No se encuentró información en el Vector de Inicialización."
+            } else if (secretKey.trim() === "") {
+                response.mensaje = "No se encuentró información en la clave secreta."
+            }
+            if (response.mensaje !== null) response.status = false;
+            return response;
+        }
+        function encrypterAES(encrypter, iv, typeEncrypter, secretKey) {
+            const plaintexmt = encrypter; 
+            let encodeKey = secretKey;
+            let encodeIV = iv;
+
+            encodeKey = CryptoJS.enc.Utf8.parse(encodeKey);
+            encodeIV = CryptoJS.enc.Utf8.parse(encodeIV);
+            let encryptedaes;
+            try {
+                if (typeEncrypter === 'ecb') {
+                    encryptedaes = CryptoJS.AES.encrypt(plaintexmt, encodeKey, {
+                        mode: CryptoJS.mode.ECB,
+                        padding: CryptoJS.pad.ZeroPadding
+                    }).toString(); 
+                } else {
+                    encryptedaes = CryptoJS.AES.encrypt(plaintexmt, encodeKey, {
+                        iv: encodeIV,
+                        mode: CryptoJS.mode.CBC,
+                        padding: CryptoJS.pad.Pkcs7
+                    }).toString();
+                }
+            } catch (e) {
+                alert("¡Error! ¿Está seguro de usar la información correcta?");
+                throw Error("No se encontró información para este proceso.")
+            }   
+            generarRespuesta(encryptedaes);
+        }
+        function desencrypterAES(encrypter, iv, typeEncrypter, secretKey) {
+            const encodeKey = CryptoJS.enc.Utf8.parse(secretKey); // 'MICLAROA20230914'
+            const encodeIV  = CryptoJS.enc.Utf8.parse(iv); // '00r941l4c2I0d2V3'
+
+            const ciphertext = CryptoJS.enc.Base64.parse(encrypter); // 'SlvfXBAtede2ye5WHUqTmKf82WtNE5acMCRKGCjAyPVaLKf2vl1hNjF6bDK9EDBFgDyvFEjRryTe4lmzlBu7iHnc5ejhgs9Nm0X9QY18UkkbLCf4aRaIDlRNPZ9r2kx0LswsnoZGGPYDyJVxsDxQPudw6kjETBbk26nfO06O2W1yjOSV9MY6cIqZhBG6ozW81qPuVLx50oDpLx9uzgwJ2Mlk1z+0vkd+yvvmnMsg5v4bdTq1imwb+yYqu6f6/Mym1Fl5NIuyuGVLDRVuYq1kKVxov5Hu/3BehK/bixvj7wVDaKlYm17LM0Pl7/M7+NtWStaw8YjmYdlgmilmeIp7J1fPMGPXIaBy3YiJOZfQYsQFQIewbRz6BS8rQfi3GMqPH6JrHXuS61pomTb85/GVtyJgH0Ue6XOD69CjY02aYVA='       
+            const encryptedCP = CryptoJS.lib.CipherParams.create({
+                ciphertext: ciphertext,
+                formatter: CryptoJS.format.OpenSSL                                     // Optional, but required for encryptedCP.toString() 
+            });
+            let decryptedWA, decryptedUtf8;
+            try {
+                if (typeEncrypter === 'ecb') {
+                    decryptedWA = CryptoJS.AES.decrypt(encryptedCP, encodeKey, {mode: CryptoJS.mode.ECB }); 
+                } else {
+                    decryptedWA = CryptoJS.AES.decrypt(encryptedCP, encodeKey, {
+                        iv: encodeIV,
+                        keySize: 128 / 8,
+                        mode: CryptoJS.mode.CBC,
+                        padding: CryptoJS.pad.Pkcs7
+                    });
+                }                            // Short for: encryptedCP.ciphertext.toString(CryptoJS.enc.Base64);
+                decryptedUtf8 = decryptedWA.toString(CryptoJS.enc.Utf8)
+            } catch (e) {
+                alert("¡Error! ¿Está seguro de usar la información correcta?");
+                throw Error("No se encontró información para este proceso.")
+            }              // Avoid the Base64 detour.
+            //
+            generarRespuesta(decryptedUtf8);
+        }
+        function generarRespuesta(encryptedBase64) {
+            resultados.style.display = "flex";
+            const respuestaDos = resultados.children[1].textContent = encryptedBase64;;
+            console.log("OK");
+        }
+    </script>
+</body>
+</html>
