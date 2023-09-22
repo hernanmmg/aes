@@ -15,6 +15,7 @@
             overflow-x: hidden;
             margin: 0;
             padding: 0;
+            font-size: 16px;
         }
         body {
             font-family: Arial, sans-serif;
@@ -56,9 +57,7 @@
             text-align: left;
             margin-bottom: 5px;
         }
-        input[type="text"],
-        select,
-        textarea {
+        .inputs {
             width: 100%;
             padding: 8px;
             margin-bottom: 8px;
@@ -160,22 +159,33 @@
         <form>
             <div>
                 <label for="encrypter">Escriba el texto a cifrar:</label>
-                <textarea id="encrypter" name="encrypter" rows="4" cols="50"></textarea>
+                <textarea class="inputs" id="encrypter" name="encrypter" rows="4" cols="50"></textarea>
             </div>
             <div>
                 <label for="type-encrypter">Seleccionar modo de crifrado:</label>
-                <select id="type-encrypter" name="type-encrypter">
+                <select class="inputs" id="type-encrypter" name="type-encrypter">
                     <option value="ecb" selected>ECB</option>
                     <option value="cbc">CBC</option>
                 </select>
             </div>
             <div>
                 <label for="secret-key">Ingrese la clave secreta:</label>
-                <input type="text" id="secret-key" name="secret-key">
+                <input class="inputs" type="text" id="secret-key" name="secret-key">
             </div>
             <div>
                 <label for="iv">Ingrese IV (opcional):</label>
-                <input type="text" id="iv" name="iv">
+                <input class="inputs" type="text" id="iv" name="iv">
+            </div>
+            <div>
+                <label for="env">Seleccionar el ambiente:</label>
+                <select class="inputs" id="env" name="env">
+                    <option value="dev" selected>DEV</option>
+                    <option value="qa">QA</option>
+                    <option value="qacbc">QA CBC</option>
+                    <option value="uat">UAT</option>
+                    <option value="uatgat">UAT Gateway</option>
+                    <option value="prod">PROD</option>
+                </select>
             </div>
             <div class="flex">
                 <button id="enc" type="button" name="enc">Encriptar</button>
@@ -190,23 +200,36 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script>
+        // Botones
         var botonEncriptar = document.getElementById("enc");
         var botonDesencriptar = document.getElementById("des");
         var botonLimpiar = document.getElementById("clear");
+        //
+        var selectorEnv = document.getElementById("env");
         var selector =  document.getElementById("type-encrypter");
         var inputIV = document.getElementById("iv");
         var resultados = document.getElementById("resultados");
+        var inputKey = document.getElementById("secret-key");
         resultados.style.display = "none";
         inputIV.disabled = true;
         var typeCipher = {
             ecb: "ecb",
             cbc: "cbc"
         }
+
+        var typeEnv = {
+            prod: "https://miclaroasesor.claro.com.co:9443/IdClaro-web/pages/servletInit.xhtml?token=",
+            uatgat: "https://miclaroasesortest.claro.co:9443/IdClaro-web/pages/servletInit.xhtml?token=",
+            uat: "http://100.126.0.150:11055/IdClaro-web/pages/servletInit.xhtml?token=",
+            qa: "http://100.126.0.150:11053/IdClaro-web/pages/servletInit.xhtml?token=",
+            qacbc: "http://100.126.0.150:11153/IdClaro-web/pages/servletInit.xhtml?token=",
+            dev: "http://localhost:7001/IdClaro-web/pages/servletInit.xhtml?token="
+        }
         botonEncriptar.addEventListener("click", function(e) {
-            const encrypter = document.getElementById("encrypter").value;
+            const encrypter = document.getElementById("encrypter").value.trim();
             const iv = inputIV.value;
             const typeEncrypter = selector.value;
-            const secretKey = document.getElementById("secret-key").value;
+            const secretKey = inputKey.value;
             //
             const response = validarNullOrEmpty(encrypter, iv, typeEncrypter, secretKey);
             
@@ -268,14 +291,12 @@
             try {
                 if (typeEncrypter === 'ecb') {
                     encryptedaes = CryptoJS.AES.encrypt(plaintexmt, encodeKey, {
-                        mode: CryptoJS.mode.ECB,
-                        padding: CryptoJS.pad.ZeroPadding
+                        mode: CryptoJS.mode.ECB
                     }).toString(); 
                 } else {
                     encryptedaes = CryptoJS.AES.encrypt(plaintexmt, encodeKey, {
                         iv: encodeIV,
-                        mode: CryptoJS.mode.CBC,
-                        padding: CryptoJS.pad.Pkcs7
+                        mode: CryptoJS.mode.CBC
                     }).toString();
                 }
             } catch (e) {
@@ -315,9 +336,66 @@
         }
         function generarRespuesta(encryptedBase64) {
             resultados.style.display = "flex";
-            const respuestaDos = resultados.children[1].textContent = encryptedBase64;;
+            let respuestaDos;
             console.log("OK");
+            if (typeCipher.cbc === selector.value) {
+                respuestaDos = resultados.children[1].textContent = encryptedBase64;
+                return;
+            }
+            respuestaDos = resultados.children[1].textContent = `${typeEnv[selectorEnv.value]}${encryptedBase64}`;
+            copyTextToClipboard(respuestaDos);
         }
+        function getFormattedDate() {
+            const date = new Date();
+
+            // Obtén los componentes de la fecha
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0'); // El mes está en base 0
+            const day = date.getDate().toString().padStart(2, '0');
+
+            // Formatea la fecha en el formato deseado (AñoMesDía)
+            const formattedDate = `MICLAROA${year}${month}${day}`;
+
+            return formattedDate;
+        }
+
+        function copyTextToClipboard(text) {
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                console.log('Texto copiado al portapapeles');
+                })
+                .catch((err) => {
+                console.error('No se pudo copiar el texto: ', err);
+                });
+        }
+
+        function getFormattedDateCBC() {
+            const date = new Date();
+
+            // Obtén los componentes de la fecha
+            const year = date.getFullYear().toString();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0'); // El mes está en base 0
+            const day = date.getDate().toString().padStart(2, '0');
+
+            // Formatea la fecha en el formato deseado (MMDDYYYY)
+            const formattedDate = month + day + year;
+
+            return formattedDate;
+        }
+
+        const generatedDate = getFormattedDateCBC();
+        const generatedString = '0r4lcIdV';
+
+        // Combina la fecha y el string en el formato deseado
+        const resultado = generatedString[0] + generatedDate[0] +
+            generatedString[1] + generatedDate[1] + generatedString[2] +
+            generatedDate[2] + generatedString[3] + generatedDate[3] +
+            generatedString[4] + generatedDate[4] + generatedString[5] +
+            generatedDate[5] + generatedString[6] + generatedDate[6] +
+            generatedString[7] + generatedDate[7];
+
+        inputIV.value = resultado;
+        inputKey.value = getFormattedDate();
     </script>
 </body>
 </html>
