@@ -12,10 +12,29 @@ async function handler(request: Request): Promise<Response> {
   if (url.pathname === '' || url.pathname === '/')
     return new Response(Bun.file("./src/index.html"))
 
+  if (url.pathname === '/public/scripts.js')
+    return new Response(Bun.file("./public/scripts.js"))
+
+  if (url.pathname === '/public/styles.css')
+    return new Response(Bun.file("./public/styles.css"))
+
+  if (url.pathname === '/urls') {
+    const response = {
+      prod: `${Bun.env.BUN_URL_PROD}/IdClaro-web/pages/servletInit.xhtml?token=`,
+      uatgat: `${Bun.env.BUN_URL_UATGAT}/IdClaro-web/pages/servletInit.xhtml?token=`,
+      uat: `${Bun.env.BUN_URL_UAT}/IdClaro-web/pages/servletInit.xhtml?token=`,
+      qa: `${Bun.env.BUN_URL_QA}/IdClaro-web/pages/servletInit.xhtml?token=`,
+      qacbc: `${Bun.env.BUN_URL_QACBC}/IdClaro-web/pages/servletInit.xhtml?token=`,
+      dev: `${Bun.env.BUN_URL_DEV}/IdClaro-web/pages/servletInit.xhtml?token=`
+    }
+    return new Response(JSON.stringify(response));
+  }
+
+
   if (url.pathname === '/todos' && request.method === 'POST') {
-    const form: {company: string, application: string} = await request.json();
+    const form: { company: string, application: string } = await request.json();
     if (!form.company.length && !form.application.length) return new Response('Invalid input', { status: 500 })
-    
+
     const params: Params = {
       empresa: form.company,
       aplicacion: form.application
@@ -31,7 +50,7 @@ async function handler(request: Request): Promise<Response> {
       ];
       return array;
     });
-    
+
     return new Response(JSON.stringify(datos));
     /*return new Response(
       renderToString(<TodoList todos={matriz} accesskey={"a"} />)
@@ -47,7 +66,7 @@ async function handler(request: Request): Promise<Response> {
       renderToString(<TodoList todos={todos} accesskey={accesskey}/>)
     );
   }*/
-  
+
   return new Response("NotFound", { status: 404 });
 }
 

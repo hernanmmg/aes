@@ -8,20 +8,26 @@ body {
   padding: 0;
   font-size: 16px;
 }
+
 body {
   font-family: Arial, sans-serif;
   text-align: center;
   background-color: #f2f2f2;
 }
+
 .linea-roja {
   background-color: #da291c;
   height: 12px;
   width: 100%;
 }
+
 h1 {
-  color: #333;
+  color: #f53402;
+  font-size: 26px;
+  margin: 16px 0;
   font-family: "system-ui", monospace;
 }
+
 .divisor {
   display: flex;
   position: relative;
@@ -30,6 +36,7 @@ h1 {
   justify-content: center;
   align-items: center;
 }
+
 form {
   width: 100%;
   max-width: 400px;
@@ -40,14 +47,17 @@ form {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 16px;
 }
+
 form div {
   margin-bottom: 10px;
 }
+
 label {
   display: block;
   text-align: left;
   margin-bottom: 5px;
 }
+
 .inputs {
   width: 100%;
   padding: 8px;
@@ -59,12 +69,14 @@ label {
   position: relative;
   box-sizing: border-box;
 }
+
 textarea {
   max-width: fit-content;
   min-width: fit-content;
-  min-height: 160px;
+  min-height: 140px;
   max-height: 180px;
 }
+
 button#des,
 button#enc {
   background-color: #007bff;
@@ -77,18 +89,22 @@ button#enc {
   font-size: 16px;
   width: 132px;
 }
+
 button#des {
   background-color: #ff4800;
 }
+
 button#enc[type="button"]:hover {
   background-color: #0056b3;
 }
+
 button#des[type="button"]:hover {
   background-color: #b30000;
 }
+
 button#clear {
   background-color: transparent;
-  background-image: url("https://raw.githubusercontent.com/hernanmmg/aes/main/broom.png");
+  background-image: url("https://raw.githubusercontent.com/hernanmmg/aes/main/public/broom.png");
   background-size: 100% 100%;
   margin-top: 16px;
   width: 32px;
@@ -98,6 +114,7 @@ button#clear {
   background-origin: border-box;
   cursor: not-allowed;
 }
+
 input:focus,
 textarea:focus,
 select:focus {
@@ -105,6 +122,7 @@ select:focus {
   border: 1px solid red;
   box-shadow: 0 0 10px #719ece;
 }
+
 #resultados {
   width: 50%;
   display: flex;
@@ -113,6 +131,7 @@ select:focus {
   align-items: center;
   margin: 0 auto;
 }
+
 #respuesta {
   width: 100%;
   padding: 8px;
@@ -127,15 +146,19 @@ select:focus {
   display: block;
   position: relative;
 }
+
 .hidden {
   display: none !important;
 }
+
 .error {
   border: 1px solid red;
 }
+
 .text-red {
   color: red;
 }
+
 .flex {
   display: flex;
   justify-content: space-around;
@@ -236,6 +259,7 @@ table {
   width: 100%;
   font-size: 14px;
 }
+
 #tabla-datos {
   padding-top: 20px;
   box-sizing: border-box;
