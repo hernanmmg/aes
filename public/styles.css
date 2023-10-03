@@ -1,0 +1,293 @@
+html,
+body {
+  width: 100%;
+  min-height: 100vh;
+  display: block;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background-color: #f2f2f2;
+}
+
+.linea-roja {
+  background-color: #da291c;
+  height: 12px;
+  width: 100%;
+}
+
+h1 {
+  color: #f53402;
+  font-size: 26px;
+  margin: 16px 0;
+  font-family: "system-ui", monospace;
+}
+
+.divisor {
+  display: flex;
+  position: relative;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+form {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
+}
+
+form div {
+  margin-bottom: 10px;
+}
+
+label {
+  display: block;
+  text-align: left;
+  margin-bottom: 5px;
+}
+
+.inputs {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  max-width: 100%;
+  display: block;
+  position: relative;
+  box-sizing: border-box;
+}
+
+textarea {
+  max-width: fit-content;
+  min-width: fit-content;
+  min-height: 140px;
+  max-height: 180px;
+}
+
+button#des,
+button#enc {
+  background-color: #007bff;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 16px;
+  font-size: 16px;
+  width: 132px;
+}
+
+button#des {
+  background-color: #ff4800;
+}
+
+button#enc[type="button"]:hover {
+  background-color: #0056b3;
+}
+
+button#des[type="button"]:hover {
+  background-color: #b30000;
+}
+
+button#clear {
+  background-color: transparent;
+  background-image: url("https://raw.githubusercontent.com/hernanmmg/aes/main/public/broom.png");
+  background-size: 100% 100%;
+  margin-top: 16px;
+  width: 32px;
+  justify-content: flex-end;
+  display: flex;
+  height: 32px;
+  background-origin: border-box;
+  cursor: not-allowed;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  border: 1px solid red;
+  box-shadow: 0 0 10px #719ece;
+}
+
+#resultados {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+}
+
+#respuesta {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 16px;
+  background-color: #d7d7d7;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  min-height: 170px;
+  overflow-wrap: anywhere;
+  overflow-x: scroll;
+  display: block;
+  position: relative;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.error {
+  border: 1px solid red;
+}
+
+.text-red {
+  color: red;
+}
+
+.flex {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+/* Estilos para el modal */
+.modal {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  min-height: 100vh;
+  padding: 8px;
+  box-sizing: border-box;
+  background-color: rgba(0, 0, 0, 0.9);
+  /* Cambiamos el color de fondo y la opacidad */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  position: relative;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  cursor: pointer;
+  color: #555;
+}
+
+/* Estilos para los elementos de entrada y botones dentro del modal */
+input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: none;
+  border-bottom: 1px solid #ddd;
+  box-sizing: border-box;
+}
+
+.button {
+  padding: 10px 20px;
+  margin: 10px 5px;
+  cursor: pointer;
+  background-color: #007bff;
+  /* Cambiamos el color de fondo del botón */
+  color: #fff;
+  /* Cambiamos el color del texto del botón */
+  border: none;
+  border-radius: 3px;
+  transition: background-color 0.3s;
+  box-sizing: border-box;
+}
+
+.button:hover {
+  background-color: #0056b3;
+  /* Cambiamos el color de fondo en el hover */
+}
+
+/* Ocultamos el botón "Ocultar Modal" inicialmente */
+#ocultarModal {
+  display: none;
+}
+
+/* Estilos para el botón de mostrar modal en la pantalla principal */
+#mostrarModal {
+  padding: 10px 20px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  transition: background-color 0.3s;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  box-sizing: border-box;
+}
+
+#mostrarModal:hover {
+  background-color: #0056b3;
+}
+
+table {
+  font-family: Arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14px;
+}
+
+#tabla-datos {
+  padding-top: 20px;
+  box-sizing: border-box;
+}
+
+th,
+td {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+tr:hover {
+  background-color: #ddd;
+}
+
+.cbutton {
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.cbutton:hover {
+  background-color: #0056b3;
+}
