@@ -1,17 +1,20 @@
 window.onload = async function () {
-
+  var objectPostman;
   // Botones
   var botonEncriptar = document.getElementById("enc");
   var botonDesencriptar = document.getElementById("des");
   var botonLimpiar = document.getElementById("clear");
+  var botonCopy = document.getElementById("copy");
   //
   var selectorEnv = document.getElementById("env");
   var selector = document.getElementById("type-encrypter");
   var inputIV = document.getElementById("iv");
   var resultados = document.getElementById("resultados");
+  var resultadosnuevo = document.getElementById("resultadosnuevo");
   var inputKey = document.getElementById("secret-key");
   var encrypterEl = document.getElementById("encrypter");
   resultados.style.display = "none";
+  resultadosnuevo.style.display = "none";
   inputIV.disabled = true;
   var typeCipher = {
     ecb: "ecb",
@@ -55,6 +58,13 @@ window.onload = async function () {
   });
   botonLimpiar.addEventListener("click", function (e) {
     resultados.style.display = "none";
+    resultadosnuevo.style.display = "none";
+  });
+
+  botonCopy.addEventListener("click", function (e) {
+
+    copyTextToClipboard(objectPostman);
+    alert('¡Copiado!');
   });
 
   selector.addEventListener('change', function () {
@@ -130,6 +140,7 @@ window.onload = async function () {
   }
   function generarRespuesta(encryptedBase64, mode = true) {
     resultados.style.display = "flex";
+    
     let respuestaDos;
     console.log("OK");
     if (typeCipher.cbc === selector.value) {
@@ -140,6 +151,10 @@ window.onload = async function () {
       respuestaDos = resultados.children[1].textContent = `${typeEnv[selectorEnv.value]}${encryptedBase64}`;
     } else {
       respuestaDos = resultados.children[1].textContent = `${encryptedBase64}`;
+    }
+
+    if (typeof objectPostman !== 'undefined') {
+      resultadosnuevo.style.display = "flex";
     }
     copyTextToClipboard(respuestaDos);
   }
@@ -207,68 +222,110 @@ window.onload = async function () {
       alert("Ingrese los datos empresa y aplicación para continuar.")
       return;
     }
-    const request = await fetch("http://localhost:8080/todos", {
-      method: 'POST', // *GET, POST, PUT, DELETE, etc.
-      mode: 'cors', // no-cors, *cors, same-origin
-      cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-      credentials: 'same-origin', // include, *same-origin, omit
-      headers: {
-        'Content-Type': 'application/json'
-        // 'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: JSON.stringify({
-        company,
-        application
-      })
-    });
-    const datosSinParse = await request.json();
-    const datos = JSON.parse(datosSinParse);
-    tabla.style.display = "table";
-    const tbody = tabla.querySelector("tbody");
-    for (var i = 0; i < datos.length; i++) {
-      var fila = document.createElement("tr");
-
-      for (var j = 0; j < datos[i].length; j++) {
-        var celda = document.createElement("td");
-        celda.textContent = datos[i][j];
-        if (j === 6) {
-          celda.style.display = "none";
-        }
-        fila.appendChild(celda);
-      };
-      var boton = document.createElement("button");
-      boton.textContent = "Seleccionar";
-      boton.addEventListener("click", function () {
-        // Obtén la fila padre del botón
-        var filaSeleccionada = this.parentNode.parentNode;
-
-        // Accede a los elementos <td> dentro de la fila y muestra los datos en la consola
-        var celdas = filaSeleccionada.querySelectorAll("td");
-        const helper = {
-          canal: null,
-          antiguedad: null,
-          segmento: null,
-          metodo: null,
-          empresa: null,
-          aplicacion: null,
-          accessKey: null
-        };
-        Object.keys(helper).forEach((celda, index) => {
-          helper[celda] = celdas[index].textContent;
-        });
-        const seg = ["HOG", "PRE", "POS", "N/A"];
-        const premisa = helper.antiguedad;
-        const fechaGenerada = generarFechaSegunPremisa(premisa);
-        const string = `documentClient=${documento}|company=${helper.empresa}|application=${helper.aplicacion}|accessKey=${helper.accessKey}|user=ECM3628F|chanelTypeCode=${helper.canal}|urlReturn=https://www.claro.com.co/personas/|methodSendOK=get|urlOK=https://portalpagos.claro.com.co/index.php|idSucursal=CAC11.00001|accountType=${seg[helper.segmento]}|antiquityClient="${fechaGenerada}"`;
-        encrypterEl.value = string;
-        cerrarModal();
+    try {
+      const request = await fetch("http://localhost:8080/todos", {
+        method: 'POST', // *GET, POST, PUT, DELETE, etc.
+        mode: 'cors', // no-cors, *cors, same-origin
+        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: 'same-origin', // include, *same-origin, omit
+        headers: {
+          'Content-Type': 'application/json'
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: JSON.stringify({
+          company,
+          application
+        })
       });
+    
+      const datosSinParse = await request.json();
+      const datos = JSON.parse(datosSinParse);
+      tabla.style.display = "table";
+      const tbody = tabla.querySelector("tbody");
+      for (var i = 0; i < datos.length; i++) {
+        var fila = document.createElement("tr");
 
-      var celdaBoton = document.createElement("td");
-      celdaBoton.appendChild(boton);
-      fila.appendChild(celdaBoton);
+        for (var j = 0; j < datos[i].length; j++) {
+          var celda = document.createElement("td");
+          celda.textContent = datos[i][j];
+          if (j === 6) {
+            celda.style.display = "none";
+          }
+          fila.appendChild(celda);
+        };
+        var boton = document.createElement("button");
+        boton.textContent = "Seleccionar";
+        boton.addEventListener("click", function () {
+          // Obtén la fila padre del botón
+          var filaSeleccionada = this.parentNode.parentNode;
 
-      tbody.appendChild(fila);
+          // Accede a los elementos <td> dentro de la fila y muestra los datos en la consola
+          var celdas = filaSeleccionada.querySelectorAll("td");
+          const helper = {
+            canal: null,
+            antiguedad: null,
+            segmento: null,
+            metodo: null,
+            empresa: null,
+            aplicacion: null,
+            accessKey: null
+          };
+          Object.keys(helper).forEach((celda, index) => {
+            helper[celda] = celdas[index].textContent;
+          });
+          const seg = ["HOG", "PRE", "POS", "N/A"];
+          const premisa = helper.antiguedad;
+          const fechaGenerada = generarFechaSegunPremisa(premisa);
+          const string = `documentClient=${documento}|company=${helper.empresa}|application=${helper.aplicacion}|accessKey=${helper.accessKey}|user=SYSTEM|chanelTypeCode=${helper.canal}|urlReturn=https://www.claro.com.co/personas/|methodSendOK=get|urlOK=https://portalpagos.claro.com.co/index.php|idSucursal=CAC11.00001|accountType=${seg[helper.segmento]}|antiquityClient="${fechaGenerada}"`;
+          encrypterEl.value = string;
+
+          const hoy = new Date();
+
+          // Obtiene los componentes de la fecha y hora actual
+          const año = hoy.getFullYear();
+          const mes = hoy.getMonth() + 1; // Los meses en JavaScript son indexados desde 0, por lo que se suma 1
+          const dia = hoy.getDate();
+          const horas = hoy.getHours();
+          const minutos = hoy.getMinutes();
+          const segundos = hoy.getSeconds();
+
+          // Formatea la fecha y hora en el estilo deseado
+          const fechaFormateada = año + '-' + mes + '-' + dia + 'T' + horas + ':' + minutos + ':' + segundos;
+
+
+objectPostman = `{
+  "headerRequest": {
+    "transactionId": "string",
+    "system": "string",
+    "target": "string",
+    "user": "SYSTEM",
+    "password": "string",
+    "requestDate": "${fechaFormateada}",
+    "ipApplication": "string",
+    "traceabilityId": "string"
+  },
+  "documentClient": "${documento}",
+  "channeltypeCode": "${helper.canal}",
+  "triedNumber": "1",
+  "accountType": "${seg[helper.segmento]}",
+  "user": "SYSTEM",
+  "company": "${helper.empresa}",
+  "application": "${helper.aplicacion}",
+  "accessKey": "${helper.accessKey}",
+  "trace": true
+}//"antiquityClient": "${fechaGenerada}"`;
+
+          cerrarModal();
+        });
+
+        var celdaBoton = document.createElement("td");
+        celdaBoton.appendChild(boton);
+        fila.appendChild(celdaBoton);
+
+        tbody.appendChild(fila);
+      }
+    } catch(e) {
+      alert("Error: mira la configuración de datos y/o VPN activada");
     }
   }
   const modal = document.getElementById("myModal");
