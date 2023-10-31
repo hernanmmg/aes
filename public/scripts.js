@@ -20,6 +20,7 @@ window.onload = async function () {
     ecb: "ecb",
     cbc: "cbc"
   }
+  fetchCompanies();
 
   async function loadUrls() {
     const request = await fetch("http://localhost:8080/urls");
@@ -213,11 +214,13 @@ window.onload = async function () {
   var tabla = document.querySelector("#tabla-datos");
   tabla.style.display = "none";
   var enviar = document.getElementById("enviar");
+  var companyEl = document.getElementById("company");
+  var applicationEl = document.getElementById("application");
   enviar.addEventListener("click", fetchData);
   async function fetchData() {
     var documento = document.getElementById("documento").value.trim();
-    var company = document.getElementById("company").value.trim();
-    var application = document.getElementById("application").value.trim();
+    var company = companyEl.value;
+    var application = applicationEl.value;
     if (company === '' || application === '' || documento.length <= 3) {
       alert("Ingrese los datos empresa y aplicación para continuar.")
       return;
@@ -385,6 +388,89 @@ objectPostman = `{
 
     return fechaFormateada;
   }
+
+  async function fetchCompanies() {
+    try {
+      console.log(tabla);
+      if (tabla !== undefined) {
+        const tbody = tabla.querySelector("tbody");
+        tbody.innerHTML = '';
+        console.log("reset");
+      }
+      const request = await fetch("http://localhost:8080/companies", {
+        method: 'GET', // *GET, POST, PUT, DELETE, etc.
+        mode: 'cors', // no-cors, *cors, same-origin
+        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: 'same-origin', // include, *same-origin, omit
+        headers: {
+          'Content-Type': 'application/json'
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+      
+      const datosSinParse = await request.json();
+      const datos = JSON.parse(datosSinParse);
+
+      datos.forEach(item => {
+        const option = document.createElement("option");
+        option.value = item[0]; // El valor a enviar al servidor cuando se selecciona
+        option.text = item[0];  // El texto que se mostrará en el select
+        companyEl.appendChild(option);
+      });
+      
+    } catch(e) {
+      console.log("Error al cargar la información de compañias");
+    }
+  }
+
+  // Función para cargar opciones en el segundo select
+  async function cargarSegundoSelect(valorSeleccionado) {
+    if (tabla !== undefined) {
+      const tbody = tabla.querySelector("tbody");
+      tbody.innerHTML = "";
+      tabla.style.display = "none";
+    }
+    // Restablece el segundo select
+    applicationEl.innerHTML = '<option value="">Selecciona un elemento</option>';
+    
+    // Si no se seleccionó nada en el primer select, no hacemos una nueva solicitud
+    if (!valorSeleccionado) {
+        return;
+    }
+
+    try {
+      const request = await fetch("http://localhost:8080/application", {
+        method: 'POST', // *GET, POST, PUT, DELETE, etc.
+        mode: 'cors', // no-cors, *cors, same-origin
+        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: 'same-origin', // include, *same-origin, omit
+        headers: {
+          'Content-Type': 'application/json'
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: JSON.stringify({
+          company: companyEl.value
+        })
+      });
+      
+      const datosSinParse = await request.json();
+      const datos = JSON.parse(datosSinParse);
+
+      datos.forEach(item => {
+        const option = document.createElement("option");
+        option.value = item[0];
+        option.text = item[0];
+        applicationEl.appendChild(option);
+      });
+    } catch(e) {
+      console.log("Error al cargar la información de aplicaciones");
+    }
+}
+
+  // Agrega un evento change al primer select
+  companyEl.addEventListener("change", function() {
+      cargarSegundoSelect(this.value);
+  });
 
   // Mostrar el modal al cargar la página
   cerrarModalBtn.addEventListener("click", cerrarModal);

@@ -15,46 +15,6 @@ const options = {
   connectString: process.env.BUN_ORACLEDB_CONNECTION,
 };
 
-async function runQuery({
-  empresa,
-  aplicacion,
-}) {
-  let db = null;
-
-  try {
-    // Conecta a la base de datos
-    const connection = await oracledb.createPool(options);
-    db = await connection.getConnection();
-    //connection = await oracledb.getConnection(options);
-    // Realiza una consulta SQL
-    //const ant = antiguedad  ? " AND MID_ANTIGUEDAD = '" + antiguedad + "'" : '';
-    //const ant_param = antiguedad ? ' MID_ANTIGUEDAD,' : '';
-
-    //const a = `SELECT MID_CANAL,${ant_param} MID_SEGMENTO, MID_METODO, EMPRESA, APLICACION FROM PVE_MATRIZ_ID_CLARO_TB WHERE MID_SEGMENTO = '${segmento}' AND MID_METODO = '${metodo}' AND EMPRESA = '${empresa}' AND MID_CANAL = '${canal}'${ant} AND APLICACION = '${aplicacion}' AND ESTADO = '1'`;
-    const accessKey = await db.execute(`SELECT CLAVE_ACCESO FROM PVE_IDCLARO_PERM_APLIC_TB where EMPRESA = '${empresa}' AND APLICACION = '${aplicacion}'`);
-    const result = await db.execute(`SELECT MID_CANAL, MID_ANTIGUEDAD, MID_SEGMENTO, MID_METODO, EMPRESA, APLICACION FROM PVE_MATRIZ_ID_CLARO_TB WHERE EMPRESA = '${empresa}' AND APLICACION = '${aplicacion}' AND ESTADO = '1'`);
-    // Imprime los resultados
-    // Devuelve la respuesta tipada
-    return {
-      matriz: result.rows,
-      accessKey: accessKey.rows,
-    };
-  } catch (error) {
-    // Maneja errores
-    throw error;
-  } finally {
-    // Cierra la conexión si se estableció
-    if (db) {
-      try {
-        await db.close();
-      } catch (error) {
-        console.error("Error al cerrar la conexión:", error);
-      }
-    }
-  }
-}
-
-
 // Configuración del servidor
 const PORT = process.env.PORT;
 
@@ -117,6 +77,133 @@ app.post('/todos', async (req, res) => {
     res.status(500).json({ error: 'Error en el servidor' });
   }
 });
+
+// Endpoint para el servicio POST
+app.get('/companies', async (req, res) => {
+  try {
+    const { empresas } = await runQueryCompanies();
+    const datos = [
+      ...empresas
+    ];
+    const jsonData = JSON.stringify(datos);
+    res.status(200).json(jsonData);
+  } catch (e) {
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+});
+
+// Endpoint para el servicio POST
+app.post('/application', async (req, res) => {
+  try {
+    const { company } = req.body;
+    if (!company.length) {
+      return res.status(500).send('Error al cargar compañía');
+    }
+
+    const params = {
+      company
+    }
+    const queryResult = await runQueryApplication(params);
+    const aplicaciones = queryResult.aplicaciones;
+
+    const datos = [
+      ...aplicaciones,
+    ];
+    const jsonData = JSON.stringify(datos);
+    res.status(200).json(jsonData);
+  } catch (e) {
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+});
+
+async function runQuery({
+  empresa,
+  aplicacion,
+}) {
+  let db = null;
+
+  try {
+    // Conecta a la base de datos
+    const connection = await oracledb.createPool(options);
+    db = await connection.getConnection();
+    //connection = await oracledb.getConnection(options);
+    // Realiza una consulta SQL
+    //const ant = antiguedad  ? " AND MID_ANTIGUEDAD = '" + antiguedad + "'" : '';
+    //const ant_param = antiguedad ? ' MID_ANTIGUEDAD,' : '';
+
+    //const a = `SELECT MID_CANAL,${ant_param} MID_SEGMENTO, MID_METODO, EMPRESA, APLICACION FROM PVE_MATRIZ_ID_CLARO_TB WHERE MID_SEGMENTO = '${segmento}' AND MID_METODO = '${metodo}' AND EMPRESA = '${empresa}' AND MID_CANAL = '${canal}'${ant} AND APLICACION = '${aplicacion}' AND ESTADO = '1'`;
+    const accessKey = await db.execute(`SELECT CLAVE_ACCESO FROM PVE_IDCLARO_PERM_APLIC_TB where EMPRESA = '${empresa}' AND APLICACION = '${aplicacion}'`);
+    const result = await db.execute(`SELECT MID_CANAL, MID_ANTIGUEDAD, MID_SEGMENTO, MID_METODO, EMPRESA, APLICACION FROM PVE_MATRIZ_ID_CLARO_TB WHERE EMPRESA = '${empresa}' AND APLICACION = '${aplicacion}' AND ESTADO = '1'`);
+    // Imprime los resultados
+    // Devuelve la respuesta tipada
+    return {
+      matriz: result.rows,
+      accessKey: accessKey.rows,
+    };
+  } catch (error) {
+    // Maneja errores
+    throw error;
+  } finally {
+    // Cierra la conexión si se estableció
+    if (db) {
+      try {
+        await db.close();
+      } catch (error) {
+        console.error("Error al cerrar la conexión:", error);
+      }
+    }
+  }
+}
+
+async function runQueryCompanies() {
+  let db = null;
+  try {
+    // Conecta a la base de datos
+    const connection = await oracledb.createPool(options);
+    db = await connection.getConnection();
+    const result = await db.execute(`SELECT DISTINCT empresa from pve_idclaro_met_aut_canal_tb`);
+    return {
+      empresas: result.rows,
+    };
+  } catch (error) {
+    // Maneja errores
+    throw error;
+  } finally {
+    // Cierra la conexión si se estableció
+    if (db) {
+      try {
+        await db.close();
+      } catch (error) {
+        console.error("Error al cerrar la conexión:", error);
+      }
+    }
+  }
+}
+
+async function runQueryApplication({ company }) {
+  let db = null;
+  try {
+    // Conecta a la base de datos
+    const connection = await oracledb.createPool(options);
+    db = await connection.getConnection();
+    const result = await db.execute(`SELECT DISTINCT APLICACION from pve_idclaro_met_aut_canal_tb where empresa = '${company}'`);
+    return {
+      aplicaciones: result.rows,
+    };
+  } catch (error) {
+    // Maneja errores
+    throw error;
+  } finally {
+    // Cierra la conexión si se estableció
+    if (db) {
+      try {
+        await db.close();
+      } catch (error) {
+        console.error("Error al cerrar la conexión:", error);
+      }
+    }
+  }
+}
 
 // Iniciar el servidor con nodemon
 app.listen(PORT, () => {

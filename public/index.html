@@ -15,8 +15,11 @@
       <span class="close" id="cerrarModal">&times;</span>
       <h2>Completa los campos:</h2>
       <input type="text" id="documento" name="documento" placeholder="CC-12345678" value="CC-">
-      <input type="text" id="company" name="company" placeholder="CLARO">
-      <input type="text" id="application" name="application" placeholder="ACCION_EXTERNA_ACTUALIZA_DATOS">
+      <select class="inputs" name="company" id="company">
+        <option value="">Selecciona una empresa</option>
+      </select>
+      <select class="inputs" name="application" id="application">
+      </select>
       <button id="enviar" class="button">Enviar</button>
       <table id="tabla-datos">
         <thead>
