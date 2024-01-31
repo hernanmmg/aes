@@ -15,107 +15,6 @@ const options = {
   connectString: process.env.BUN_ORACLEDB_CONNECTION,
 };
 
-// Configuración del servidor
-const PORT = process.env.PORT;
-
-// Middleware para leer archivos estáticos
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Endpoint para el index.html
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.get('/public/scripts.js', (req, res) => {
-  const cssPath = path.join(__dirname, 'public', 'scripts.js');
-  res.sendFile(cssPath);
-});
-
-app.get('/public/styles.css', (req, res) => {
-  const cssPath = path.join(__dirname, 'public', 'styles.css');
-  res.sendFile(cssPath);
-});
-
-app.get('/urls', (req, res) => {
-  const response = {
-    prod: `${process.env.BUN_URL_PROD}/IdClaro-web/pages/servletInit.xhtml?token=`,
-    uatgat: `${process.env.BUN_URL_UATGAT}/IdClaro-web/pages/servletInit.xhtml?token=`,
-    uat: `${process.env.BUN_URL_UAT}/IdClaro-web/pages/servletInit.xhtml?token=`,
-    qa: `${process.env.BUN_URL_QA}/IdClaro-web/pages/servletInit.xhtml?token=`,
-    qacbc: `${process.env.BUN_URL_QACBC}/IdClaro-web/pages/servletInit.xhtml?token=`,
-    dev: `${process.env.BUN_URL_DEV}/IdClaro-web/pages/servletInit.xhtml?token=`
-  }
-  res.status(200).json(response);
-});
-
-// Endpoint para el servicio POST
-app.post('/todos', async (req, res) => {
-  try {
-    const { company, application } = req.body;
-    if (!company.length || !application.length) {
-      return res.status(500).send('Error en el servidor');
-    }
-
-    const params = {
-      empresa: company,
-      aplicacion: application
-    }
-    const queryResult = await runQuery(params);
-    const accesskey = queryResult.accessKey[0][0];
-    const matriz = queryResult.matriz;
-
-    const datos = matriz.map((todo) => {
-      const array = [
-        ...todo,
-        accesskey,
-      ];
-      return array;
-    });
-    const jsonData = JSON.stringify(datos);
-    res.status(200).json(jsonData);
-  } catch (e) {
-    res.status(500).json({ error: 'Error en el servidor' });
-  }
-});
-
-// Endpoint para el servicio POST
-app.get('/companies', async (req, res) => {
-  try {
-    const { empresas } = await runQueryCompanies();
-    const datos = [
-      ...empresas
-    ];
-    const jsonData = JSON.stringify(datos);
-    res.status(200).json(jsonData);
-  } catch (e) {
-    res.status(500).json({ error: 'Error en el servidor' });
-  }
-});
-
-// Endpoint para el servicio POST
-app.post('/application', async (req, res) => {
-  try {
-    const { company } = req.body;
-    if (!company.length) {
-      return res.status(500).send('Error al cargar compañía');
-    }
-
-    const params = {
-      company
-    }
-    const queryResult = await runQueryApplication(params);
-    const aplicaciones = queryResult.aplicaciones;
-
-    const datos = [
-      ...aplicaciones,
-    ];
-    const jsonData = JSON.stringify(datos);
-    res.status(200).json(jsonData);
-  } catch (e) {
-    res.status(500).json({ error: 'Error en el servidor' });
-  }
-});
-
 async function runQuery({
   empresa,
   aplicacion,
@@ -155,55 +54,71 @@ async function runQuery({
   }
 }
 
-async function runQueryCompanies() {
-  let db = null;
-  try {
-    // Conecta a la base de datos
-    const connection = await oracledb.createPool(options);
-    db = await connection.getConnection();
-    const result = await db.execute(`SELECT DISTINCT empresa from pve_idclaro_met_aut_canal_tb`);
-    return {
-      empresas: result.rows,
-    };
-  } catch (error) {
-    // Maneja errores
-    throw error;
-  } finally {
-    // Cierra la conexión si se estableció
-    if (db) {
-      try {
-        await db.close();
-      } catch (error) {
-        console.error("Error al cerrar la conexión:", error);
-      }
-    }
-  }
-}
 
-async function runQueryApplication({ company }) {
-  let db = null;
-  try {
-    // Conecta a la base de datos
-    const connection = await oracledb.createPool(options);
-    db = await connection.getConnection();
-    const result = await db.execute(`SELECT DISTINCT APLICACION from pve_idclaro_met_aut_canal_tb where empresa = '${company}'`);
-    return {
-      aplicaciones: result.rows,
-    };
-  } catch (error) {
-    // Maneja errores
-    throw error;
-  } finally {
-    // Cierra la conexión si se estableció
-    if (db) {
-      try {
-        await db.close();
-      } catch (error) {
-        console.error("Error al cerrar la conexión:", error);
-      }
-    }
+// Configuración del servidor
+const PORT = process.env.PORT;
+
+// Middleware para leer archivos estáticos
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Endpoint para el index.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/public/scripts.js', (req, res) => {
+  const cssPath = path.join(__dirname, 'public', 'scripts.js');
+  res.sendFile(cssPath);
+});
+
+app.get('/public/styles.css', (req, res) => {
+  const cssPath = path.join(__dirname, 'public', 'styles.css');
+  res.sendFile(cssPath);
+});
+
+app.get('/urls', (req, res) => {
+  const response = {
+    prod: `${process.env.BUN_URL_PROD}/IdClaro-web/pages/servletInit.xhtml?token=`,
+    prodb: `${process.env.BUN_URL_PROD_B}/IdClaro-web/pages/servletInit.xhtml?token=`,
+    uatgat: `${process.env.BUN_URL_UATGAT}/IdClaro-web/pages/servletInit.xhtml?token=`,
+    uat: `${process.env.BUN_URL_UAT}/IdClaro-web/pages/servletInit.xhtml?token=`,
+    sfuat: `${process.env.BUN_URL_UATSF}/IdClaro-web/pages/servletInit.xhtml?token=`,
+    qa: `${process.env.BUN_URL_QA}/IdClaro-web/pages/servletInit.xhtml?token=`,
+    qacbc: `${process.env.BUN_URL_QACBC}/IdClaro-web/pages/servletInit.xhtml?token=`,
+    dev: `${process.env.BUN_URL_DEV}/IdClaro-web/pages/servletInit.xhtml?token=`
   }
-}
+  res.status(200).json(response);
+});
+
+// Endpoint para el servicio POST
+app.post('/todos', async (req, res) => {
+  try {
+    const { company, application } = req.body;
+    if (!company.length || !application.length) {
+      return res.status(500).send('Error en el servidor');
+    }
+
+    const params = {
+      empresa: company,
+      aplicacion: application
+    }
+    const queryResult = await runQuery(params);
+    const accesskey = queryResult.accessKey[0][0];
+    const matriz = queryResult.matriz;
+
+    const datos = matriz.map((todo) => {
+      const array = [
+        ...todo,
+        accesskey,
+      ];
+      return array;
+    });
+    const jsonData = JSON.stringify(datos);
+    res.status(200).json(jsonData);
+  } catch (e) {
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+});
 
 // Iniciar el servidor con nodemon
 app.listen(PORT, () => {

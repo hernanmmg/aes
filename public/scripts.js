@@ -1,4 +1,5 @@
 window.onload = async function () {
+  var modoOffline = true;
   var objectPostman;
   // Botones
   var botonEncriptar = document.getElementById("enc");
@@ -20,7 +21,6 @@ window.onload = async function () {
     ecb: "ecb",
     cbc: "cbc"
   }
-  fetchCompanies();
 
   async function loadUrls() {
     const request = await fetch("http://localhost:8080/urls");
@@ -28,7 +28,21 @@ window.onload = async function () {
     return results;
   }
 
-  var typeEnv = await loadUrls();
+  try {
+    var typeEnv = await loadUrls();
+  } catch(ex) {
+    typeEnv = {
+      "prod": "https://miclaroasesor.claro.com.co:9443/IdClaro-web/pages/servletInit.xhtml?token=",
+      "prodb": "http://100.126.25.67:8001/IdClaro-web/pages/servletInit.xhtml?token=",
+      "uatgat": "https://miclaroasesortest.claro.co:9443/IdClaro-web/pages/servletInit.xhtml?token=",
+      "sfuat": "https://appscvgwsfciuat.claro.com.co/IdClaro-web/pages/servletInit.xhtml?token=",
+      "uat": "http://100.126.0.150:11055/IdClaro-web/pages/servletInit.xhtml?token=",
+      "qa": "http://100.126.0.150:11053/IdClaro-web/pages/servletInit.xhtml?token=",
+      "qacbc": "http://100.126.0.150:11153/IdClaro-web/pages/servletInit.xhtml?token=",
+      "dev": "http://localhost:7001/IdClaro-web/pages/servletInit.xhtml?token=",
+    }
+    console.log("No se cargaron las urls para localhost:8080/urls")
+  }
   botonEncriptar.addEventListener("click", function (e) {
     const iv = inputIV.value;
     const typeEncrypter = selector.value;
@@ -64,7 +78,7 @@ window.onload = async function () {
 
   botonCopy.addEventListener("click", function (e) {
 
-    copyTextToClipboard(objectPostman);
+  copyTextToClipboard(objectPostman);
     alert('¡Copiado!');
   });
 
@@ -141,23 +155,24 @@ window.onload = async function () {
   }
   function generarRespuesta(encryptedBase64, mode = true) {
     resultados.style.display = "flex";
-    
-    let respuestaDos;
     console.log("OK");
-    if (typeCipher.cbc === selector.value) {
-      respuestaDos = resultados.children[1].textContent = encryptedBase64;
+    let encryptText = `${typeEnv[selectorEnv.value]}${encryptedBase64}`;
+    /*if (typeCipher.cbc === selector.value) {
+      resultados.children[1].textContent = encryptText;
+      copyTextToClipboard(encryptText);
       return;
-    }
+    }*/
     if (mode) {
-      respuestaDos = resultados.children[1].textContent = `${typeEnv[selectorEnv.value]}${encryptedBase64}`;
+      resultados.children[1].textContent = encryptText;
     } else {
-      respuestaDos = resultados.children[1].textContent = `${encryptedBase64}`;
+      encryptText = null;
+      resultados.children[1].textContent = `${encryptedBase64}`;
     }
 
     if (typeof objectPostman !== 'undefined') {
       resultadosnuevo.style.display = "flex";
     }
-    copyTextToClipboard(respuestaDos);
+    copyTextToClipboard(encryptText || `${encryptedBase64}`);
   }
   function getFormattedDate() {
     const date = new Date();
@@ -214,13 +229,11 @@ window.onload = async function () {
   var tabla = document.querySelector("#tabla-datos");
   tabla.style.display = "none";
   var enviar = document.getElementById("enviar");
-  var companyEl = document.getElementById("company");
-  var applicationEl = document.getElementById("application");
   enviar.addEventListener("click", fetchData);
   async function fetchData() {
     var documento = document.getElementById("documento").value.trim();
-    var company = companyEl.value;
-    var application = applicationEl.value;
+    var company = document.getElementById("company").value;
+    var application = document.getElementById("application").value;
     if (company === '' || application === '' || documento.length <= 3) {
       alert("Ingrese los datos empresa y aplicación para continuar.")
       return;
@@ -389,89 +402,10 @@ objectPostman = `{
     return fechaFormateada;
   }
 
-  async function fetchCompanies() {
-    try {
-      console.log(tabla);
-      if (tabla !== undefined) {
-        const tbody = tabla.querySelector("tbody");
-        tbody.innerHTML = '';
-        console.log("reset");
-      }
-      const request = await fetch("http://localhost:8080/companies", {
-        method: 'GET', // *GET, POST, PUT, DELETE, etc.
-        mode: 'cors', // no-cors, *cors, same-origin
-        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-        credentials: 'same-origin', // include, *same-origin, omit
-        headers: {
-          'Content-Type': 'application/json'
-          // 'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      });
-      
-      const datosSinParse = await request.json();
-      const datos = JSON.parse(datosSinParse);
-
-      datos.forEach(item => {
-        const option = document.createElement("option");
-        option.value = item[0]; // El valor a enviar al servidor cuando se selecciona
-        option.text = item[0];  // El texto que se mostrará en el select
-        companyEl.appendChild(option);
-      });
-      
-    } catch(e) {
-      console.log("Error al cargar la información de compañias");
-    }
-  }
-
-  // Función para cargar opciones en el segundo select
-  async function cargarSegundoSelect(valorSeleccionado) {
-    if (tabla !== undefined) {
-      const tbody = tabla.querySelector("tbody");
-      tbody.innerHTML = "";
-      tabla.style.display = "none";
-    }
-    // Restablece el segundo select
-    applicationEl.innerHTML = '<option value="">Selecciona un elemento</option>';
-    
-    // Si no se seleccionó nada en el primer select, no hacemos una nueva solicitud
-    if (!valorSeleccionado) {
-        return;
-    }
-
-    try {
-      const request = await fetch("http://localhost:8080/application", {
-        method: 'POST', // *GET, POST, PUT, DELETE, etc.
-        mode: 'cors', // no-cors, *cors, same-origin
-        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-        credentials: 'same-origin', // include, *same-origin, omit
-        headers: {
-          'Content-Type': 'application/json'
-          // 'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: JSON.stringify({
-          company: companyEl.value
-        })
-      });
-      
-      const datosSinParse = await request.json();
-      const datos = JSON.parse(datosSinParse);
-
-      datos.forEach(item => {
-        const option = document.createElement("option");
-        option.value = item[0];
-        option.text = item[0];
-        applicationEl.appendChild(option);
-      });
-    } catch(e) {
-      console.log("Error al cargar la información de aplicaciones");
-    }
-}
-
-  // Agrega un evento change al primer select
-  companyEl.addEventListener("change", function() {
-      cargarSegundoSelect(this.value);
-  });
-
   // Mostrar el modal al cargar la página
   cerrarModalBtn.addEventListener("click", cerrarModal);
+
+  if (modoOffline) {
+    cerrarModal();
+  }
 };
